@@ -2,6 +2,7 @@
 
 // Version 0.01: Load and answer questions
 // Version 0.02: Board and movement
+// Version 0.03: Choosing a square
 
 using System;
 using System.IO;
@@ -100,41 +101,64 @@ class ConsoleTrivial
     }
 
     public static void QuestionShow(ref ushort points,
-        string[] allFileLines)
+        string[] allFileLines, string category)
     {
-        Random rnd = new Random();
-        int questionNumber = rnd.Next(0, allFileLines.Length);
-        string line = allFileLines[questionNumber];
-        Question actualQuestion = new Question();
-        string[] questionArray = line.Split('#');
-        actualQuestion.category = questionArray[0];
-        actualQuestion.text = questionArray[1];
-        actualQuestion.answer1 = questionArray[2];
-        actualQuestion.answer2 = questionArray[3];
-        actualQuestion.answer3 = questionArray[4];
-        actualQuestion.answer4 = questionArray[5];
-        actualQuestion.correct = Convert.ToUInt16(questionArray[6]);
-
-        Console.WriteLine(actualQuestion.text);
-        Console.WriteLine(actualQuestion.answer1);
-        Console.WriteLine(actualQuestion.answer2);
-        Console.WriteLine(actualQuestion.answer3);
-        Console.WriteLine(actualQuestion.answer4);
-        Console.Write("Enter the question number: ");
-
-        string userInput = Console.ReadLine();
-        if (userInput == Convert.ToString(actualQuestion.correct))
+        bool exit = false;
+        bool found = false;
+        int count = 0;
+        int questionNumber = 0;
+        while (!exit)
         {
-            Console.WriteLine("Correct!");
-            points += 1; 
-        }
-        else
-        {
-            Console.WriteLine("Incorrect!");
+            if(allFileLines[count][0] == category[0])
+            {
+                questionNumber = count;
+                exit = true;
+                found = true;
+            }
+            else
+            {
+                count++;
+                if(count == allFileLines.Length)
+                {
+                    exit = true;
+                }
+            }
         }
 
-        Console.WriteLine("Press Enter to end turn");
-        Console.ReadLine();
+        if(found)
+        {
+            string line = allFileLines[questionNumber];
+            Question actualQuestion = new Question();
+            string[] questionArray = line.Split('Ç');
+            actualQuestion.category = questionArray[0];
+            actualQuestion.text = questionArray[1];
+            actualQuestion.answer1 = questionArray[2];
+            actualQuestion.answer2 = questionArray[3];
+            actualQuestion.answer3 = questionArray[4];
+            actualQuestion.answer4 = questionArray[5];
+            actualQuestion.correct = Convert.ToUInt16(questionArray[6]);
+
+            Console.WriteLine(actualQuestion.text);
+            Console.WriteLine(actualQuestion.answer1);
+            Console.WriteLine(actualQuestion.answer2);
+            Console.WriteLine(actualQuestion.answer3);
+            Console.WriteLine(actualQuestion.answer4);
+            Console.Write("Enter the answer number: ");
+
+            string userInput = Console.ReadLine();
+            if (userInput == Convert.ToString(actualQuestion.correct))
+            {
+                Console.WriteLine("Correct!");
+                points += 1;
+            }
+            else
+            {
+                Console.WriteLine("Incorrect!");
+            }
+
+            Console.WriteLine("Press Enter to end turn");
+            Console.ReadLine();
+        }
     }
 
     public static void ShowScores(List<Player> playersList)
@@ -148,62 +172,6 @@ class ConsoleTrivial
         }
     }
 
-    public static void GameStart()
-    {
-        string fileName = "txt/questions.txt";
-        string[] allFileLines = ReadFile(fileName);
-        List<Player> playersList = new List<Player>();
-
-        bool exit = false;
-        ushort totalPlayers = 0;
-
-        // players select
-        PlayersSelect(ref totalPlayers, ref playersList);
-
-
-        // Game Loop
-        ushort actualPlayer = 0;
-        do
-        {
-            Console.Clear();
-            ShowScores(playersList);
-
-            Console.WriteLine();
-            Console.WriteLine("{0} playing... ",
-                playersList[actualPlayer].name);
-            ushort actualScore = playersList[actualPlayer].score;
-            // Question Show
-            QuestionShow(ref actualScore, allFileLines);
-
-            /*  The next code is for update the player score
-                            Alert !
-                Change the next lines of code if the structcs remove
-            */
-            Player aux = new Player();
-            aux.name = playersList[actualPlayer].name;
-            aux.score = actualScore;
-            playersList[actualPlayer] = aux;
-
-            if (actualScore == 20)
-            {
-                Console.Clear();
-                Console.WriteLine("{0} wins!",
-                    playersList[actualPlayer].name);
-                Console.WriteLine("Results: ");
-                ShowScores(playersList);
-                Console.WriteLine("Press Enter for exit");
-                Console.ReadLine();
-                exit = true;
-            }
-
-            actualPlayer++;
-            if (actualPlayer == totalPlayers)
-            {
-                actualPlayer = 0;
-            }
-        } while (!exit);
-    }
-
     public static Square[] CreateBoard()
     {
         String[] categories = { "SY", "WB", "PR", "SY", "DB", "WB", "PR",
@@ -212,8 +180,8 @@ class ConsoleTrivial
             "WB", "SY", "WB", "DB", "SY", "PR", "WB"};
         const int ARRAYSIZE = 28;
         Square[] squareArray = new Square[ARRAYSIZE];
-        int squareHeight = 4;
-        int squareWidth = 10;
+        int squareHeight = 3; // original 4
+        int squareWidth = 9; // original 10
         int actualX = 0;
         int actualY = 0;
 
@@ -283,6 +251,55 @@ class ConsoleTrivial
         }
     }
 
+    public static int SelectNewPosition(int actualPosition, int dice, 
+        Square[] squareArray)
+    {
+        int redPosition = actualPosition - dice;
+        int greenPosition = actualPosition + dice;
+        if (redPosition < 0) // 28 squares, start by 0
+        {
+            redPosition = redPosition + 28;
+        }
+        if (greenPosition > 27) // 28 squares, start by 0
+        {
+            greenPosition = greenPosition - 28;
+        }
+
+        // Print the colors
+
+        // Red
+        Console.SetCursorPosition(squareArray[redPosition].x,
+            squareArray[redPosition].y + 3);
+        Console.BackgroundColor = ConsoleColor.Red;
+        Console.Write("|________|");
+
+        // Green
+        Console.SetCursorPosition(squareArray[greenPosition].x,
+            squareArray[greenPosition].y + 3);
+        Console.BackgroundColor = ConsoleColor.Green;
+        Console.Write("|________|");
+
+        // reset console color
+        Console.ResetColor();
+
+        // Text and return for the new position
+        Console.SetCursorPosition(0, 28);
+        Console.Write("Write 1 for go to the red mark, 2 for the green: ");
+        string nextPosition = Console.ReadLine();
+        switch (nextPosition)
+        {
+            case "1":
+                Console.WriteLine("Red selected, going to the new position");
+                return redPosition;
+            case "2":
+                Console.WriteLine("Green selected, going to the new position");
+                return greenPosition;
+            default:
+                Console.WriteLine("No position selected, turn lost");
+                return actualPosition;
+        }
+    }
+
     public static int Dice()
     {
         Random rnd = new Random();
@@ -297,26 +314,33 @@ class ConsoleTrivial
 
     static void Main(string[] args)
     {
+        string fileName = "txt/questions.txt";
+        string[] allFileLines = ReadFile(fileName);
+
         bool exit = false;
         int actualPosition = 0;
         Square[] squareArray = CreateBoard();
+        ushort actualScore = 0;
 
         while(!exit)
         {
+            Console.Clear();
             DrawBoard(squareArray);
             DrawPlayer(squareArray[actualPosition].x,
                 squareArray[actualPosition].y);
-            Console.SetCursorPosition(0, 32);
+            Console.SetCursorPosition(0, 27);
+            Console.WriteLine("Press Enter for roll the dice");
+            Console.ReadLine();
 
+            Console.SetCursorPosition(0, 26);
             int dice = Dice();
             Console.WriteLine("Dice: {0}", dice);
-            actualPosition += dice;
-            if(actualPosition > 27) // 28 squares, start by 0
-            {
-                actualPosition = actualPosition - 28;
-            }
-            Console.WriteLine("Press Enter for another try");
-            Console.ReadLine();
+            actualPosition = SelectNewPosition(actualPosition, dice, squareArray);
+            // SelectNewPosition, set the console cursor at the top position 28
+
+            QuestionShow(ref actualScore, allFileLines, 
+                squareArray[actualPosition].category);
+
         }
     }
 }
