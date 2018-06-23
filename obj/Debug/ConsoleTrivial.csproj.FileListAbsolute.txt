@@ -8,3 +8,10 @@ c:\users\otakon\documents\visual studio 2015\Projects\ConsoleTrivial\obj\Debug\C
 C:\Users\Otakon\Documents\Visual Studio 2015\Projects\00_GitHubTrivial\ConsoleTrivial\bin\Debug\ConsoleTrivial.exe.config
 C:\Users\Otakon\Documents\Visual Studio 2015\Projects\00_GitHubTrivial\ConsoleTrivial\obj\Debug\ConsoleTrivial.exe
 C:\Users\Otakon\Documents\Visual Studio 2015\Projects\00_GitHubTrivial\ConsoleTrivial\obj\Debug\ConsoleTrivial.pdb
+C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\ConsoleTrivial.exe.config
+C:\Users\Otakon\Documents\ConsoleTrivial\obj\Debug\ConsoleTrivial.exe
+C:\Users\Otakon\Documents\ConsoleTrivial\obj\Debug\ConsoleTrivial.pdb
+C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\ConsoleTrivial.exe
+C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\ConsoleTrivial.pdb
+C:\Users\Otakon\Documents\ConsoleTrivial\obj\Debug\ConsoleTrivial.csprojResolveAssemblyReference.cache
+C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\bin\Debug\txt\questions.txt

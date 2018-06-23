@@ -1,4 +1,0 @@
-Programming Ç How end a program line? Ç 1- : Ç 2- . Ç 3- ; Ç 4- , Ç 3
-Databases Ç Say what arent a database program: Ç 1- Oracle Ç 2- MariaDB Ç 3- Dolphin Ç 4- Visual Studio Ç 4
-Systems Ç How is the name of a CPU with graphics incorporated? Ç 1- CEPU Ç 2- APU Ç 3- GPU Ç 4- RAM Ç 2
-Web Ç Mark a no web lenguaje: Ç 1- Java Ç 2- JavaScript Ç 3- PHP Ç 4- Html Ç 1

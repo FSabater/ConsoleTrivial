@@ -3,6 +3,7 @@
 // Version 0.01: Load and answer questions
 // Version 0.02: Board and movement
 // Version 0.03: Choosing a square
+// Version 0.04: Real game, part 1
 
 using System;
 using System.IO;
@@ -34,6 +35,22 @@ public struct Square
 
 class ConsoleTrivial
 {
+    public static bool ExitGame()
+    {
+        Console.SetCursorPosition(11, 20);
+        Console.Write("Press Enter for exit, Escape for cancel");
+        if (Console.ReadKey().Key == ConsoleKey.Enter)
+        {
+            return true;
+        }
+        else
+        {
+            Console.SetCursorPosition(11, 20);
+            Console.Write("                                                 ");
+            return false;
+        }
+    }
+
     public static String[] ReadFile(string fileName)
     {
         try
@@ -67,7 +84,7 @@ class ConsoleTrivial
     }
 
     public static void PlayersSelect(ref ushort totalPlayers,
-        ref List<Player> playersList)
+        List<Player> playersList)
     {
         bool validNumPlayers = false;
         while (!validNumPlayers)
@@ -84,7 +101,8 @@ class ConsoleTrivial
                     validNumPlayers = true;
                     break;
                 default:
-                    Console.WriteLine("Invalid input, choose a valid option");
+                    Console.WriteLine("Invalid input, "
+                        + "choose a valid option");
                     break;
             }
         }
@@ -103,30 +121,38 @@ class ConsoleTrivial
     public static void QuestionShow(ref ushort points,
         string[] allFileLines, string category)
     {
-        bool exit = false;
+        bool exitOfBucleSearch = false;
         bool found = false;
         int count = 0;
-        int questionNumber = 0;
-        while (!exit)
+        int firstQuestionFound = 0;
+        int maxQuestionsCategory = 0;
+        while (!exitOfBucleSearch)
         {
             if(allFileLines[count][0] == category[0])
             {
-                questionNumber = count;
-                exit = true;
+                if(firstQuestionFound == 0)
+                {
+                    firstQuestionFound = count;
+                }
+                else
+                {
+                    maxQuestionsCategory = count;
+                }
                 found = true;
             }
-            else
+
+            count++;
+            if (count >= allFileLines.Length-1)
             {
-                count++;
-                if(count == allFileLines.Length)
-                {
-                    exit = true;
-                }
+                exitOfBucleSearch = true;
             }
         }
 
         if(found)
         {
+            Random rnd = new Random();
+            int questionNumber = rnd.Next(firstQuestionFound,
+                maxQuestionsCategory);
             string line = allFileLines[questionNumber];
             Question actualQuestion = new Question();
             string[] questionArray = line.Split('Ç');
@@ -138,14 +164,16 @@ class ConsoleTrivial
             actualQuestion.answer4 = questionArray[5];
             actualQuestion.correct = Convert.ToUInt16(questionArray[6]);
 
+            Console.SetCursorPosition(0, 29);
+            Console.WriteLine("Category: {0}", actualQuestion.category);
             Console.WriteLine(actualQuestion.text);
             Console.WriteLine(actualQuestion.answer1);
             Console.WriteLine(actualQuestion.answer2);
             Console.WriteLine(actualQuestion.answer3);
             Console.WriteLine(actualQuestion.answer4);
             Console.Write("Enter the answer number: ");
-
             string userInput = Console.ReadLine();
+
             if (userInput == Convert.ToString(actualQuestion.correct))
             {
                 Console.WriteLine("Correct!");
@@ -155,20 +183,28 @@ class ConsoleTrivial
             {
                 Console.WriteLine("Incorrect!");
             }
-
             Console.WriteLine("Press Enter to end turn");
             Console.ReadLine();
+        }
+        else
+        {
+            Console.WriteLine("Error: internal error with the category");
         }
     }
 
     public static void ShowScores(List<Player> playersList)
     {
+        int x = 11;
+        int y = 5;
+        
         foreach (Player p in playersList)
         {
+            Console.SetCursorPosition(x, y);
             Console.Write("{0} - ",
                 p.name);
             Console.WriteLine("Score: {0}",
                 p.score);
+            y++;
         }
     }
 
@@ -251,8 +287,8 @@ class ConsoleTrivial
         }
     }
 
-    public static int SelectNewPosition(int actualPosition, int dice, 
-        Square[] squareArray)
+    public static void SelectNewPosition(ref int actualPosition, int dice,
+    Square[] squareArray)
     {
         int redPosition = actualPosition - dice;
         int greenPosition = actualPosition + dice;
@@ -282,22 +318,36 @@ class ConsoleTrivial
         // reset console color
         Console.ResetColor();
 
-        // Text and return for the new position
-        Console.SetCursorPosition(0, 28);
-        Console.Write("Write 1 for go to the red mark, 2 for the green: ");
-        string nextPosition = Console.ReadLine();
-        switch (nextPosition)
+        bool validOption = false;
+        do
         {
-            case "1":
-                Console.WriteLine("Red selected, going to the new position");
-                return redPosition;
-            case "2":
-                Console.WriteLine("Green selected, going to the new position");
-                return greenPosition;
-            default:
-                Console.WriteLine("No position selected, turn lost");
-                return actualPosition;
-        }
+            // Text and return for the new position
+            Console.SetCursorPosition(0, 25);
+            Console.Write("Write 1 for go to the red mark, 2 for the green: ");
+            string nextPosition = Console.ReadLine();
+
+            if (nextPosition == "1")
+            {
+                Console.SetCursorPosition(0, 28);
+                Console.
+                    WriteLine("Red selected, going to the position");
+                validOption = true;
+                actualPosition = redPosition;
+            }
+            else if(nextPosition == "2")
+            {
+                Console.SetCursorPosition(0, 28);
+                Console.WriteLine("Green selected, going to the position");
+                validOption = true;
+                actualPosition = greenPosition;
+            }
+            else
+            {
+                Console.SetCursorPosition(0, 28);
+                Console.WriteLine("No position selected, select one");
+                validOption = false;
+            }
+        } while (!validOption);
     }
 
     public static int Dice()
@@ -312,36 +362,139 @@ class ConsoleTrivial
         Console.Write("X");
     }
 
-    static void Main(string[] args)
+    public static void GameStart(string[] allFileLines)
     {
-        string fileName = "txt/questions.txt";
-        string[] allFileLines = ReadFile(fileName);
+        List<Player> playersList = new List<Player>();
 
         bool exit = false;
+        ushort totalPlayers = 0;
+        ushort actualPlayer = 0;
         int actualPosition = 0;
         Square[] squareArray = CreateBoard();
         ushort actualScore = 0;
 
-        while(!exit)
+        // players select
+        PlayersSelect(ref totalPlayers, playersList);
+
+        // Game Loop
+        while (!exit)
         {
+            //clear and draw the board
             Console.Clear();
+            actualScore = playersList[actualPlayer].score;
+            ShowScores(playersList);
             DrawBoard(squareArray);
             DrawPlayer(squareArray[actualPosition].x,
                 squareArray[actualPosition].y);
+
+            Console.SetCursorPosition(11, 10);
+            Console.WriteLine("{0} playing... ",
+                playersList[actualPlayer].name);
+
+            // Enter for roll the dice and exit the game
             Console.SetCursorPosition(0, 27);
             Console.WriteLine("Press Enter for roll the dice");
-            Console.ReadLine();
 
-            Console.SetCursorPosition(0, 26);
-            int dice = Dice();
-            Console.WriteLine("Dice: {0}", dice);
-            actualPosition = SelectNewPosition(actualPosition, dice, squareArray);
-            // SelectNewPosition, set the console cursor at the top position 28
+            if (Console.ReadKey().Key == ConsoleKey.Escape)
+            {
+                exit = ExitGame();
+            }
 
-            QuestionShow(ref actualScore, allFileLines, 
+            if (!exit)
+            {
+                Console.SetCursorPosition(0, 26);
+                int dice = Dice();
+                Console.WriteLine("Dice: {0}", dice);
+                // SelectNewPosition,set the console cursor at the top position 28
+                SelectNewPosition(ref actualPosition, dice,
+                    squareArray);
+            }
+
+            if (!exit)
+            {
+                QuestionShow(ref actualScore, allFileLines,
                 squareArray[actualPosition].category);
 
+                Player aux = new Player();
+                aux.name = playersList[actualPlayer].name;
+                aux.score = actualScore;
+                playersList[actualPlayer] = aux;
+            }
+
+            // Check the players score and see if the game end
+            if (actualScore >= 20)
+            {
+                Player highScorePlayer = playersList[actualPlayer];
+                bool win = true;
+                foreach (Player p in playersList)
+                {
+                    if (p.score == highScorePlayer.score)
+                    {
+                        //for ignore the same player
+                    }
+                    else if (p.score < highScorePlayer.score - 2)
+                    {
+                        // for ignore the lost players
+                    }
+                    else
+                    {
+                        win = false;
+                    }
+                }
+
+                if (win)
+                {
+                    Console.SetCursorPosition(11, 18);
+                    Console.Write("{0} wins!", playersList[actualPlayer].name);
+                    Console.Write(" - Game Over");
+                    exit = true;
+                }
+                else
+                {
+                    Console.SetCursorPosition(11, 18);
+                    Console.Write("Nobody wins! New Round Starting, press Enter");
+                    if (Console.ReadKey().Key == ConsoleKey.Escape)
+                    {
+                        exit = ExitGame();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < playersList.Count; i++)
+                        {
+                            Player aux = playersList[i];
+                            aux.score = 0;
+                            playersList[i] = aux;
+                        }
+                    }
+                }
+
+            }
+
+            // Next Player turn
+            if (!exit)
+            {
+                actualPlayer++;
+                if (actualPlayer == totalPlayers)
+                {
+                    actualPlayer = 0;
+                }
+            }
         }
+    }
+
+    static void Main(string[] args)
+    {
+        string fileName = "bin/debug/txt/questions.txt";
+        string[] allFileLines = ReadFile(fileName);
+        if(allFileLines[0].Split('Ç').Length == 7)
+        {
+            GameStart(allFileLines);
+        }
+        else
+        {
+            Console.WriteLine("Error: File error");
+        }
+        
     }
 }
 
