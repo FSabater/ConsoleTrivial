@@ -47,8 +47,9 @@ public class ListOfQuestions
                 if (line != null)
                 {
                     Question q = new Question(line);
-                    Add(q);
+                    questions.Add(q);
                 }
+                line = sr.ReadLine();
             }
             sr.Close();
             usedQuestions = new List<int>();
@@ -69,9 +70,6 @@ public class ListOfQuestions
         {
             Console.WriteLine("Error: " + e.Message);
         }
-
-
-        
     }
 
     public Question GetFromCategory(string category)
@@ -84,11 +82,14 @@ public class ListOfQuestions
         }
 
         Random r = new Random();
+        Console.WriteLine(auxList.Count);
         return auxList[r.Next() % auxList.Count];
     }
 
     public Question GetFromCategoryNR(string category)
     {
+        Console.WriteLine(category);
+        Console.WriteLine(questions.Count);
         Question result = null;
         List<Question> auxList = new List<Question>();
        
