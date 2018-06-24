@@ -474,8 +474,24 @@ public class Game
                 playersList[actualPlayer] = auxPlayer;
             }
 
-            // Check the players score and see if the game end
-            // ToDo
+            // Check if the game end
+            const int pointsToWin = 20;
+            foreach(Player p in playersList)
+            {
+                int totalPoints = 0;
+                foreach(KeyValuePair<string, int> k in p.AcceptedQuestions)
+                {
+                    totalPoints = k.Value;
+                }
+
+                if(totalPoints >= pointsToWin)
+                {
+                    exit = true;
+                    Console.WriteLine("{0} win!, press Enter for exit",
+                        p.Name);
+                    Console.ReadLine();
+                }
+            }
 
             // Next Player turn
             if (!exit)
