@@ -14,4 +14,4 @@ C:\Users\Otakon\Documents\ConsoleTrivial\obj\Debug\ConsoleTrivial.pdb
 C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\ConsoleTrivial.exe
 C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\ConsoleTrivial.pdb
 C:\Users\Otakon\Documents\ConsoleTrivial\obj\Debug\ConsoleTrivial.csprojResolveAssemblyReference.cache
-C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\bin\Debug\txt\questions.txt
+C:\Users\Otakon\Documents\ConsoleTrivial\bin\Debug\bin\Debug\txt\questions.dat

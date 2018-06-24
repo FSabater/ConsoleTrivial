@@ -280,7 +280,7 @@ public class Game
 
             if (!exit)
             {
-                Question questionAux = questions.GetFromCategoryNR(
+                Question questionAux = questions.GetFromCategory(
                     squareArray[actualPosition].category);
                 if(questionAux == null)
                 {
