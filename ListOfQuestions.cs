@@ -88,8 +88,6 @@ public class ListOfQuestions
 
     public Question GetFromCategoryNR(string category)
     {
-        Console.WriteLine(category);
-        Console.WriteLine(questions.Count);
         Question result = null;
         List<Question> auxList = new List<Question>();
        

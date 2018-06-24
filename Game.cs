@@ -51,26 +51,59 @@ public class Game
         {
             Console.Write("Enter player {0} name: ", i + 1);
             string nameAux = Console.ReadLine();
-            Player aux = new Player();
-            aux.Name = nameAux;
-            playersList.Add(aux);
+            if(i == 0)
+            {
+                Player aux = new Player(nameAux, ConsoleColor.Yellow,
+                    1, 2);
+                playersList.Add(aux);
+            }
+            else if(i == 1)
+            {
+                Player aux = new Player(nameAux, ConsoleColor.Black,
+                    3, 2);
+                playersList.Add(aux);
+            }
+            else if (i == 2)
+            {
+                Player aux = new Player(nameAux, ConsoleColor.White,
+                    5, 2);
+                playersList.Add(aux);
+            }
+            else if( i == 3 )
+            {
+                Player aux = new Player(nameAux, ConsoleColor.DarkGreen,
+                    7, 2);
+                playersList.Add(aux);
+            }
         }
     }
 
-    public static void ShowScores(List<Player> playersList)
+    public static void GameModeSelect(ref ushort gameMode)
     {
-        int x = 11;
-        int y = 5;
-
-        foreach (Player p in playersList)
+        bool validGameType = false;
+        while (!validGameType)
         {
-            Console.SetCursorPosition(x, y);
-            Console.Write("{0} - ",
-                p.Name);
-            
-            // Console.WriteLine("Score: {0}",
-            //     p.score);
-            y++;
+            Console.Clear();
+            Console.SetCursorPosition(30, 0);
+            Console.WriteLine("Select a game type:");
+            Console.WriteLine("1.- infinity questions");
+            Console.WriteLine("2.- five questions");
+            Console.WriteLine("3.- one question");
+            string input = Console.ReadLine();
+
+            switch (input)
+            {
+                case "1":
+                case "2":
+                case "3":
+                    validGameType = true;
+                    gameMode = Convert.ToUInt16(input);
+                    break;
+                default:
+                    Console.WriteLine("Invalid input, "
+                        + "choose a valid option");
+                    break;
+            }
         }
     }
 
@@ -193,8 +226,9 @@ public class Game
         } while (!validOption);
     }
 
-    public static void QuestionShow(Question question, int points)
+    public static bool QuestionShow(Question question)
     {
+        bool correct = false;
         Console.SetCursorPosition(0, 29);
         Console.WriteLine("Category: {0}", question.Category);
         Console.WriteLine(question.Text);
@@ -208,14 +242,137 @@ public class Game
         if (userInput == Convert.ToString(question.Correct))
         {
             Console.WriteLine("Correct!");
-            points += 1;
+            correct = true;
         }
         else
         {
             Console.WriteLine("Incorrect!");
+            correct = false;
         }
         Console.WriteLine("Press Enter to end turn");
         Console.ReadLine();
+        return correct;
+    }
+
+    public static Player GameMode1(ListOfQuestions questions,
+        Square[] squareArray, int actualPosition, Player actualPlayer, Board board,
+        List<Player> playersList, ref bool exit)
+    {
+        // The current player only lost his turn if a incorrect answer
+        string category = squareArray[actualPosition].category;
+        bool correct = false;
+        do
+        {
+            DrawAll(playersList, board, squareArray);
+            Question questionAux = questions.GetFromCategory(
+                    category);
+            if (questionAux == null)
+            {
+                Console.WriteLine("No question avaliable");
+                exit = true;
+            }
+            else
+            {
+                correct = QuestionShow(questionAux);
+                actualPlayer.AttemptedQuestions[category] =
+                    actualPlayer.AttemptedQuestions[category]+1;
+
+                if (correct)
+                {
+                    actualPlayer.AcceptedQuestions[category] =
+                        actualPlayer.AcceptedQuestions[category] + 1;
+                    Console.SetCursorPosition(0, 26);
+                    int dice = Dice();
+                    Console.WriteLine("Dice: {0}", dice);
+                    // SelectNewPosition,set the console cursor at the top position 28
+                    SelectNewPosition(ref actualPosition, dice,
+                        squareArray);
+                }
+                actualPlayer.Position = actualPosition;
+            }
+        } while (correct);
+        return actualPlayer;
+    }
+
+    public static Player GameMode2(ListOfQuestions questions,
+        Square[] squareArray, int actualPosition, Player actualPlayer, Board board,
+        List<Player> playersList, ref bool exit)
+    {
+        // 5 questions max for a player who choose correct answer
+        string category = squareArray[actualPosition].category;
+        bool correct = false;
+        ushort count = 0;
+        ushort maxQuestions = 5;
+        do
+        {
+            DrawAll(playersList, board, squareArray);
+            Question questionAux = questions.GetFromCategoryNR(
+                    category);
+            if (questionAux == null)
+            {
+                Console.WriteLine("No question avaliable");
+                exit = true;
+            }
+            else
+            {
+                correct = QuestionShow(questionAux);
+                actualPlayer.AttemptedQuestions[category] =
+                    actualPlayer.AttemptedQuestions[category] + 1;
+
+                if (correct)
+                {
+                    actualPlayer.AcceptedQuestions[category] =
+                        actualPlayer.AcceptedQuestions[category] + 1;
+                    Console.SetCursorPosition(0, 26);
+                    int dice = Dice();
+                    Console.WriteLine("Dice: {0}", dice);
+                    // SelectNewPosition,set the console cursor at the top position 28
+                    SelectNewPosition(ref actualPosition, dice,
+                        squareArray);
+                }
+            }
+            actualPlayer.Position = actualPosition;
+            count++;
+        } while (correct && count < maxQuestions);
+
+        return actualPlayer;
+    }
+
+    public static Player GameMode3(ListOfQuestions questions,
+        Square[] squareArray, int actualPosition, Player actualPlayer, ref bool exit)
+    {
+        // only one question
+        string category = squareArray[actualPosition].category;
+        bool correct = false;
+
+        Question questionAux = questions.GetFromCategoryNR(
+                category);
+        if (questionAux == null)
+        {
+            Console.WriteLine("No question avaliable");
+            exit = true;
+        }
+        else
+        {
+            correct = QuestionShow(questionAux);
+            actualPlayer.AttemptedQuestions[category] =
+                actualPlayer.AttemptedQuestions[category] + 1;
+
+            if (correct)
+            {
+                actualPlayer.AcceptedQuestions[category] =
+                    actualPlayer.AcceptedQuestions[category] + 1;
+                Console.SetCursorPosition(0, 26);
+                int dice = Dice();
+                Console.WriteLine("Dice: {0}", dice);
+                // SelectNewPosition,set the console cursor at the top position 28
+                SelectNewPosition(ref actualPosition, dice,
+                    squareArray);
+            }
+        }
+        actualPlayer.Position = actualPosition;
+
+        return actualPlayer;
     }
 
     public static int Dice()
@@ -224,11 +381,24 @@ public class Game
         return rnd.Next(1, 6);
     }
 
-    public static void DrawPlayer(int x, int y)
+    public static void DrawPlayers(List<Player> playersList,
+        Square[] squareArray)
     {
-        Console.SetCursorPosition(x + 5, y + 2); // 5 and 2 for centrate the player
-        Console.Write("X");
-    }   
+        foreach (Player p in playersList)
+        {
+            p.DrawPlayer(squareArray[p.Position].x,
+                squareArray[p.Position].y);
+        }
+    }
+
+    public static void DrawAll(List<Player> playersList, Board board,
+        Square[] squareArray)
+    {
+        Console.Clear();
+        StatsDisplay.ShowStats(playersList);
+        board.Draw(squareArray);
+        DrawPlayers(playersList, squareArray);
+    }
 
     public void Run()
     {
@@ -239,21 +409,21 @@ public class Game
         bool exit = false;
         ushort totalPlayers = 0;
         ushort actualPlayer = 0;
+        ushort gameMode = 0;
         int actualPosition = 0;
         Square[] squareArray = CreateBoard();
 
         // players select
         PlayersSelect(ref totalPlayers, playersList);
 
+        // Game mode select
+        GameModeSelect(ref gameMode);
+
         // Game Loop
         while (!exit)
         {
             //clear and draw the board
-            Console.Clear();
-            ShowScores(playersList);
-            board.Draw(squareArray);
-            DrawPlayer(squareArray[actualPosition].x,
-                squareArray[actualPosition].y);
+            DrawAll(playersList, board, squareArray);
 
             Console.SetCursorPosition(11, 10);
             Console.WriteLine("{0} playing... ",
@@ -278,18 +448,30 @@ public class Game
                     squareArray);
             }
 
+            // Game mode
             if (!exit)
             {
-                Question questionAux = questions.GetFromCategoryNR(
-                    squareArray[actualPosition].category);
-                if(questionAux == null)
+                Player auxPlayer = playersList[actualPlayer];
+                switch(gameMode)
                 {
-                    Console.WriteLine("No question avaliable");
+                    case 1:
+                        auxPlayer = GameMode1(questions, squareArray,
+                            actualPosition, playersList[actualPlayer],
+                            board, playersList, ref exit);
+                        break;
+                    case 2:
+                        auxPlayer = GameMode2(questions, squareArray,
+                            actualPosition, playersList[actualPlayer],
+                            board, playersList, ref exit);
+                        break;
+                    case 3:
+                        auxPlayer = GameMode3(questions, squareArray,
+                            actualPosition, playersList[actualPlayer],
+                            ref exit);
+                        break;
                 }
-                else
-                {
-                    QuestionShow(questionAux, 0); // record score dont avaliable for now
-                }
+
+                playersList[actualPlayer] = auxPlayer;
             }
 
             // Check the players score and see if the game end
